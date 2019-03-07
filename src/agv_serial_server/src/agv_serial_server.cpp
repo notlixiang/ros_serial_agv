@@ -28,66 +28,6 @@
 serial::Serial ser;
 using namespace std;
 
-
-// bool call_ur_twist(jrc_srvs::call_twist::Request &req,
-//                    jrc_srvs::call_twist::Response &res) {
-// //  ros::NodeHandle n;
-
-// //  ROS_INFO("%s",ser.available()?"available":"not available");
-//     if (1) {
-//         ee_angle_send = req.angle;
-
-//         ROS_INFO("Called twist %f", req.angle);
-//     } else {
-//         ROS_ERROR("Serial unavailable!");
-//         return -1;
-//     }
-//     return true;
-// }
-
-// bool call_ur_grasp(jrc_srvs::call_grasp::Request &req,
-//                    jrc_srvs::call_grasp::Response &res) {
-//     ros::NodeHandle n;
-//     ros::ServiceClient client =
-//             n.serviceClient<ur_msgs::SetIO>("/ur_driver/set_io");
-//     ur_msgs::SetIO srv;
-//     int state = req.grasp ? 0 : 1;
-
-//     srv.request.fun = (int8_t) 1;
-//     srv.request.pin = (int8_t) 0;
-//     srv.request.state = state;
-//     if (client.call(srv)) {
-//         ROS_INFO("Called ur io. fun %d pin %d state %f", srv.request.fun,
-//                  srv.request.pin, srv.request.state);
-
-//     } else {
-//         ROS_ERROR("Failed to call ur io");
-//         return 1;
-//     }
-
-//     // usleep(1000000);//+1s
-
-//     // res.grasped=ur_grasped;
-//     res.acted = true;
-//     return true;
-// }
-
-
-// bool call_ur_grasp_state(jrc_srvs::call_grasp_state::Request &req,
-//                          jrc_srvs::call_grasp_state::Response &res) {
-// //  ros::NodeHandle n;
-
-// //  ROS_INFO("%s",ser.available()?"available":"not available");
-//     if (1) {
-//         res.grasped = ur_grasped;
-//         ROS_INFO("Return grasp_state %s", ur_grasped ? "true" : "false");
-//     } else {
-//         ROS_ERROR("Serial unavailable!");
-//         return -1;
-//     }
-//     return true;
-// }
-
 int main(int argc, char **argv) {
     try {
         ser.setPort("/dev/ttyUSB0");
@@ -109,31 +49,53 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(20);
     ros::NodeHandle n;
 
     bool serialflag = true;
-std::string datastr="";
-datastr.clear();
-char feedback_buff[100];
+    std::string datastr="";
+    datastr.clear();
+// char feedback_buff[200];
+    const char* front_fbk="FBK";
+    const char* back_fbk="fbk";
+// printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);  
     while (ros::ok()) {
-        if (serialflag) {
-            ROS_INFO("%s", ser.available() ? "available" : "not available");
-            datastr += ser.read(ser.available());
-            ROS_INFO("%s", datastr.data());
-int success_num_read=sscanf(datastr.data(), "%*s\nFBK%sfbk", &feedback_buff);
-            datastr.clear();
+        // ROS_INFO("start");
+        // if (serialflag) {
+        datastr.clear();
+            // ROS_INFO("%s", ser.available() ? "available" : "not available");
+        datastr += ser.read(ser.available());            
+
+        const char* head = strstr(datastr.data(),front_fbk);
+            // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
+          // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
+          // printf("%s\n",head);
+        if(head!=NULL){
+            if(head[FEEDBACK_DATA_LENGTH+3+0]==back_fbk[0]&&
+                head[FEEDBACK_DATA_LENGTH+3+1]==back_fbk[1]&&
+                head[FEEDBACK_DATA_LENGTH+3+2]==back_fbk[2])
+            {
+                struct_feedback_data* feedback_ptr=(struct_feedback_data*)(head+3);
+                if(feedback_ptr->check_front_fbk==CHECK_FRONT_FBK&&
+                    feedback_ptr->check_back_fbk==CHECK_BACK_FBK){
+                    ROS_INFO("Valid serial data recieved.");
+                ROS_INFO("speed %f %f %f",feedback_ptr->speed_fbk[0],
+                    feedback_ptr->speed_fbk[1],feedback_ptr->speed_fbk[2] );
+                }
+            // datastr.clear();
+            }
         }
-struct_feedback_data* struct_feedback_data_ptr=(struct_feedback_data*)feedback_buff;
 
+        // ROS_INFO("end");
+        // }
 
-        serialflag = !serialflag;
-        string stringSend;
-        char charSend[50];
-        sprintf(charSend, "ANGLEUTD%dANGLEUTD\n\r", (int) (1 * 10));
+        // serialflag = !serialflag;
+        // string stringSend;
+        // char charSend[50];
+        // sprintf(charSend, "ANGLEUTD%dANGLEUTD\n\r", (int) (1 * 10));
 
-        // ROS_INFO("%s", charSend);
-        stringSend = charSend;
+        // // ROS_INFO("%s", charSend);
+        // stringSend = charSend;
         // ser.write(stringSend);
 
         ros::spinOnce();
