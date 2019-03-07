@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 add_compile_options(-std=c++11)
-project(ur_ee_server)
+project(agv_serial_server)
 
 find_package(catkin REQUIRED COMPONENTS
   	roscpp
@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
 	std_srvs
 	message_generation
   	serial
-  	jrc_srvs
   	ur_msgs
 )
 
@@ -38,13 +37,12 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/src
 )
 
-add_executable(ur_ee_server_node src/ur_ee_server.cpp)
-add_dependencies(ur_ee_server_node jrc_srvs_gencpp)
-add_dependencies(ur_ee_server_node ur_msgs_gencpp)
+add_executable(agv_serial_server src/agv_serial_server.cpp)
 
-target_link_libraries(ur_ee_server_node
+target_link_libraries(agv_serial_server
   ${catkin_LIBRARIES}
 )
 
