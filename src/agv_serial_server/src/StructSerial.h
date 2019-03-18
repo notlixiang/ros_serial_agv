@@ -11,6 +11,7 @@ typedef struct struct_command_data {
 	int check_front_cmd;
 	
 	float speed_cmd[3];
+	float pos_cmd[3];
 	uint8_t  qr_scan_cmd;
 	
 	int check_back_cmd;

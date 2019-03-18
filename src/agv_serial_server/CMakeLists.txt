@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_srvs
 	message_generation
   	serial
+    agv_srvs
   	ur_msgs
 )
 
