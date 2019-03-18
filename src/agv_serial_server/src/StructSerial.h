@@ -31,7 +31,7 @@ typedef struct struct_feedback_data {
 	float a_fbk[3];
 	float g_fbk[3];
 	
-	uint8_t ultra_sound_signal_fbk[12];
+	float ultra_sound_signal_fbk[12];
 	
 	char qr_scan_fbk[10];
 	

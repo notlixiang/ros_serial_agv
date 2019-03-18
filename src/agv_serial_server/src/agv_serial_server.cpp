@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
     const char* back_fbk="fbk";
 // printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);  
     while (ros::ok()) {
+                    // ROS_INFO("loop start.");
         // ROS_INFO("start");
         // if (serialflag) {
         datastr.clear();
@@ -69,8 +70,8 @@ int main(int argc, char **argv) {
         const char* head = strstr(datastr.data(),front_fbk);
             // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
           // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
-          // printf("%s\n",head);
         if(head!=NULL){
+           // printf("%s\n",head);
             if(head[FEEDBACK_DATA_LENGTH+3+0]==back_fbk[0]&&
                 head[FEEDBACK_DATA_LENGTH+3+1]==back_fbk[1]&&
                 head[FEEDBACK_DATA_LENGTH+3+2]==back_fbk[2])
@@ -81,10 +82,31 @@ int main(int argc, char **argv) {
                     ROS_INFO("Valid serial data recieved.");
                 ROS_INFO("speed %f %f %f",feedback_ptr->speed_fbk[0],
                     feedback_ptr->speed_fbk[1],feedback_ptr->speed_fbk[2] );
+                ROS_INFO("positon %f %f %f",feedback_ptr->pos_fbk[0],
+                    feedback_ptr->pos_fbk[1],feedback_ptr->pos_fbk[2] );
+                ROS_INFO("imu_a %f %f %f",feedback_ptr->a_fbk[0],
+                    feedback_ptr->a_fbk[1],feedback_ptr->a_fbk[2] );
+                ROS_INFO("imu_g %f %f %f",feedback_ptr->g_fbk[0],
+                    feedback_ptr->g_fbk[1],feedback_ptr->g_fbk[2] );
+                ROS_INFO("ultra_sound %f %f %f %f %f %f %f %f %f %f %f %f",
+                    feedback_ptr->ultra_sound_signal_fbk[0],
+                    feedback_ptr->ultra_sound_signal_fbk[1],
+                    feedback_ptr->ultra_sound_signal_fbk[2],
+                    feedback_ptr->ultra_sound_signal_fbk[3],
+                    feedback_ptr->ultra_sound_signal_fbk[4],
+                    feedback_ptr->ultra_sound_signal_fbk[5],
+                    feedback_ptr->ultra_sound_signal_fbk[6],
+                    feedback_ptr->ultra_sound_signal_fbk[7],
+                    feedback_ptr->ultra_sound_signal_fbk[8],
+                    feedback_ptr->ultra_sound_signal_fbk[9],
+                    feedback_ptr->ultra_sound_signal_fbk[10],
+                    feedback_ptr->ultra_sound_signal_fbk[11]);
+                ROS_INFO("qr_scan %s\n",feedback_ptr->qr_scan_fbk );
                 }
             // datastr.clear();
             }
         }
+                    // ROS_INFO("loop end.");
 
         // ROS_INFO("end");
         // }
