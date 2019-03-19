@@ -13,7 +13,7 @@
 
 #define FREQUENCY 10
 #define COMMAND_SIZE 11 
- 
+
 #define MAXZERONUM 5
 
 serial::Serial ser;
@@ -109,7 +109,7 @@ void velFilter(short &vx, short &vy, short &va, int &count, short &lastvx, short
             vx = lastvx;
             vy = lastvy;
             va = lastva;
-            ROS_INFO("*****FILT OUT********");
+            // ROS_INFO("*****FILT OUT********");
         }
     }
     else
@@ -139,11 +139,9 @@ int main(int argc, char **argv) {
     }
 
     ros::init(argc, argv, "agv_serial_server");
-    ros::NodeHandle nh;
-
-    
-    ros::Rate loop_rate(20);
-    ros::NodeHandle n;
+    ros::NodeHandle nh;    
+    DataUpdater dataUpdater(nh);
+    ros::Rate loop_rate(FREQUENCY);
 
     bool serialflag = true;
     std::string datastr="";
@@ -151,11 +149,41 @@ int main(int argc, char **argv) {
 // char feedback_buff[200];
     const char* front_fbk="FBK";
     const char* back_fbk="fbk";
-// printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);  
+// printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH); 
+
+    geometry_msgs::Twist carVelocity;
+    int zeroCount = 0;
+    short lastvx=0;
+    short lastvy=0;
+    short lastva=0;
+    short vx,vy,va;
+    double velx,vely,vela;
+    char cmd[COMMAND_SIZE+1];
+    cmd[COMMAND_SIZE]='\0';
+
+
     while (ros::ok()) {
-                    // ROS_INFO("loop start.");
-        // ROS_INFO("start");
-        // if (serialflag) {
+
+        carVelocity = dataUpdater.getCarVel();
+        velx = carVelocity.linear.x;
+        vely = carVelocity.linear.y;
+        vela = carVelocity.angular.z;
+        vx = (int)(velx*1000.0);
+        vy = (int)(vely*1000.0);
+        va = (int)(vela*1000.0);
+        velFilter(vx,vy,va,zeroCount,lastvx,lastvy,lastva); // filt out single zero
+        genCmd(cmd,vx,vy,-va); // adjust the opsite direction
+        string stringSend;
+        try{
+            uint8_t* uint8_t_cmd_ptr = (uint8_t*)cmd;
+            ser.write(uint8_t_cmd_ptr,COMMAND_SIZE);
+            // ROS_INFO("stringSend.length() %ld",stringSend.length());
+            // ROS_INFO("Send cmd %02x, %02x, %02x, %02x, %02x, %02x.",(unsigned char)cmd[4],(unsigned char)cmd[5],(unsigned char)cmd[6],(unsigned char)cmd[7],(unsigned char)cmd[8],(unsigned char)cmd[9]);
+        }catch(serial::IOException &e)
+        {
+          ROS_INFO("Write error..");
+        }
+
         datastr.clear();
             // ROS_INFO("%s", ser.available() ? "available" : "not available");
         datastr += ser.read(ser.available());         
