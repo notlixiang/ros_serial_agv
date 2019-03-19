@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 	message_generation
   	serial
     agv_srvs
-  	ur_msgs
 )
 
 #add_message_files(
