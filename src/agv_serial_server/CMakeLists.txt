@@ -3,6 +3,7 @@ add_compile_options(-std=c++11)
 project(agv_serial_server)
 
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
   	roscpp
   	std_msgs
 	std_srvs
@@ -34,6 +35,7 @@ catkin_package(
     std_msgs
     message_runtime
     serial
+  geometry_msgs
 )
 
 include_directories(
