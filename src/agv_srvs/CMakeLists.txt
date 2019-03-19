@@ -4,8 +4,6 @@ project(agv_srvs)
 
 
 find_package(catkin REQUIRED COMPONENTS
-    image_transport
-    cv_bridge
     roscpp
     rospy
     sensor_msgs
