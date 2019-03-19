@@ -14,7 +14,7 @@
 #define FREQUENCY 10
 #define COMMAND_SIZE 11
 
-#define MAXZERONUM 5
+#define MAXZERONUM 2
 
 serial::Serial ser;
 using namespace std;
@@ -34,9 +34,11 @@ public:
 private:
     // callback functions
     void carVelCallback(const geometry_msgs::Twist::ConstPtr &msg);
+    void carQrCallback(const std_msgs::Bool &msg);
 
     // subscribers
     ros::Subscriber carVelSub;
+    ros::Subscriber carQrSub;
 
     // data
     geometry_msgs::Twist::ConstPtr carVel; //boost::shared_ptr<const geometry_msgs::Twist_<std::allocator<void> > > 
@@ -47,6 +49,7 @@ private:
 
 DataUpdater::DataUpdater(ros::NodeHandle &nh) {
     carVelSub = nh.subscribe("cmd_vel", 1, &DataUpdater::carVelCallback, this);
+    carQrSub = nh.subscribe("cmd_qr", 1, &DataUpdater::carQrCallback, this);
     ACCEPTTIME = 500000000; // 0.5s, unit: ns(10^-9s) TODO: this may need change
 }
 
@@ -58,7 +61,9 @@ void DataUpdater::carVelCallback(const geometry_msgs::Twist::ConstPtr &msg) {
     //ROS_INFO("car_vel: %.4f, %.4f, %.4f", msg->linear.x, msg->linear.y, msg->angular.z);
     carVelTime = ros::Time::now();
 }
-
+void DataUpdater::carQrCallback(const std_msgs::Bool &msg) {
+    qr_scan_cmd=1;
+}
 geometry_msgs::Twist DataUpdater::getCarVel() {
     ros::Time nowTime = ros::Time::now();
     ros::Duration timediff = nowTime - carVelTime;
@@ -91,7 +96,7 @@ void genCmd(char *cmdData, short vx, short vy, short va) {
 
 }
 
-void velFilter(short &vx, short &vy, short &va, int &count, short &lastvx, short &lastvy, short &lastva) {
+void velFilter(float &vx, float &vy, float &va, int &count, float &lastvx, float &lastvy, float &lastva) {
     if (vx == 0 && vy == 0 && va == 0) {
         count++;
         if (count > MAXZERONUM) {
@@ -123,7 +128,9 @@ bool send_struct_command_serial(serial::Serial &ser) {
     }
 
     command.qr_scan_cmd = qr_scan_cmd;
-
+    if(qr_scan_cmd!=0){
+        qr_scan_cmd=0;
+    }
     command.check_front_cmd = CHECK_FRONT_CMD;
     command.check_back_cmd = CHECK_BACK_CMD;
 
@@ -139,6 +146,7 @@ bool send_struct_command_serial(serial::Serial &ser) {
     memcpy(cmd_buff + 3, command_ptr_char, COMMAND_DATA_LENGTH);
 
     ser.write(cmd_buff, COMMAND_DATA_LENGTH + 8);
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -173,11 +181,11 @@ int main(int argc, char **argv) {
 
     geometry_msgs::Twist carVelocity;
     int zeroCount = 0;
-    short lastvx = 0;
-    short lastvy = 0;
-    short lastva = 0;
-    short vx, vy, va;
-    double velx, vely, vela;
+    float lastvx = 0;
+    float lastvy = 0;
+    float lastva = 0;
+    float vx, vy, va;
+    float velx, vely, vela;
     char cmd[COMMAND_SIZE + 1];
     cmd[COMMAND_SIZE] = '\0';
 
@@ -185,20 +193,23 @@ int main(int argc, char **argv) {
     while (ros::ok()) {
 
         carVelocity = dataUpdater.getCarVel();
-        velx = carVelocity.linear.x;
-        vely = carVelocity.linear.y;
-        vela = carVelocity.angular.z;
-        vx = (int) (velx * 1000.0);
-        vy = (int) (vely * 1000.0);
-        va = (int) (vela * 1000.0);
+        velx = (float) carVelocity.linear.x;
+        vely = (float) carVelocity.linear.y;
+        vela = (float) carVelocity.angular.z;
+        vx = (float) (velx * 1000.0);
+        vy = (float) (vely * 1000.0);
+        va = (float) (vela * 1000.0);
         velFilter(vx, vy, va, zeroCount, lastvx, lastvy, lastva); // filt out single zero
-        genCmd(cmd, vx, vy, -va); // adjust the opsite direction
+        speed_cmd[0] = vx;
+        speed_cmd[1] = vy;
+        speed_cmd[2] = va;
+//        genCmd(cmd, vx, vy, -va); // adjust the opsite direction
         string stringSend;
         try {
-            uint8_t *uint8_t_cmd_ptr = (uint8_t *) cmd;
-            ser.write(uint8_t_cmd_ptr, COMMAND_SIZE);
+//            uint8_t *uint8_t_cmd_ptr = (uint8_t *) cmd;
+//            ser.write(uint8_t_cmd_ptr, COMMAND_SIZE);
             // ROS_INFO("stringSend.length() %ld",stringSend.length());
-            // ROS_INFO("Send cmd %02x, %02x, %02x, %02x, %02x, %02x.",(unsigned char)cmd[4],(unsigned char)cmd[5],(unsigned char)cmd[6],(unsigned char)cmd[7],(unsigned char)cmd[8],(unsigned char)cmd[9]);
+            send_struct_command_serial(ser);
         } catch (serial::IOException &e) {
             ROS_INFO("Write error..");
         }
