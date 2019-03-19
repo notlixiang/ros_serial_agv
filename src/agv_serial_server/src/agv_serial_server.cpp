@@ -146,6 +146,7 @@ bool send_struct_command_serial(serial::Serial &ser) {
     memcpy(cmd_buff + 3, command_ptr_char, COMMAND_DATA_LENGTH);
 
     ser.write(cmd_buff, COMMAND_DATA_LENGTH + 8);
+    ROS_INFO("COMMAND_DATA_LENGTH + 8 %ld",COMMAND_DATA_LENGTH + 8);
     return true;
 }
 
