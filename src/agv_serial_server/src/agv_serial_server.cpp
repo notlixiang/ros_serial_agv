@@ -23,7 +23,8 @@ float speed_cmd[3] = {0};
 float pos_cmd[3] = {0};
 uint8_t qr_scan_cmd = 0;
 
-class DataUpdater {
+class DataUpdater
+{
 public:
     DataUpdater(ros::NodeHandle &nh);
 
@@ -41,30 +42,35 @@ private:
     ros::Subscriber carQrSub;
 
     // data
-    geometry_msgs::Twist::ConstPtr carVel; //boost::shared_ptr<const geometry_msgs::Twist_<std::allocator<void> > > 
+    geometry_msgs::Twist::ConstPtr carVel; //boost::shared_ptr<const geometry_msgs::Twist_<std::allocator<void> > >
     // the latest time that recieve a message
     ros::Time carVelTime;
     int ACCEPTTIME;
 };
 
-DataUpdater::DataUpdater(ros::NodeHandle &nh) {
+DataUpdater::DataUpdater(ros::NodeHandle &nh)
+{
     carVelSub = nh.subscribe("cmd_vel", 1, &DataUpdater::carVelCallback, this);
     carQrSub = nh.subscribe("cmd_qr", 1, &DataUpdater::carQrCallback, this);
     ACCEPTTIME = 500000000; // 0.5s, unit: ns(10^-9s) TODO: this may need change
 }
 
-DataUpdater::~DataUpdater() {
+DataUpdater::~DataUpdater()
+{
 }
 
-void DataUpdater::carVelCallback(const geometry_msgs::Twist::ConstPtr &msg) {
+void DataUpdater::carVelCallback(const geometry_msgs::Twist::ConstPtr &msg)
+{
     carVel = msg;
     //ROS_INFO("car_vel: %.4f, %.4f, %.4f", msg->linear.x, msg->linear.y, msg->angular.z);
     carVelTime = ros::Time::now();
 }
-void DataUpdater::carQrCallback(const std_msgs::Bool &msg) {
-    qr_scan_cmd=1;
+void DataUpdater::carQrCallback(const std_msgs::Bool &msg)
+{
+    qr_scan_cmd = 1;
 }
-geometry_msgs::Twist DataUpdater::getCarVel() {
+geometry_msgs::Twist DataUpdater::getCarVel()
+{
     ros::Time nowTime = ros::Time::now();
     ros::Duration timediff = nowTime - carVelTime;
     if (carVel && timediff.nsec < ACCEPTTIME && timediff.sec == 0) // this message is new enough
@@ -74,7 +80,8 @@ geometry_msgs::Twist DataUpdater::getCarVel() {
     return dummyZero;
 }
 
-void genCmd(char *cmdData, short vx, short vy, short va) {
+void genCmd(char *cmdData, short vx, short vy, short va)
+{
     void *tempP1 = &vx;
     void *tempP2 = &vy;
     void *tempP3 = &va;
@@ -96,18 +103,25 @@ void genCmd(char *cmdData, short vx, short vy, short va) {
 
 }
 
-void velFilter(float &vx, float &vy, float &va, int &count, float &lastvx, float &lastvy, float &lastva) {
-    if (vx == 0 && vy == 0 && va == 0) {
+void velFilter(float &vx, float &vy, float &va, int &count, float &lastvx, float &lastvy, float &lastva)
+{
+    if (vx == 0 && vy == 0 && va == 0)
+    {
         count++;
-        if (count > MAXZERONUM) {
+        if (count > MAXZERONUM)
+        {
             count = MAXZERONUM;
-        } else {
+        }
+        else
+        {
             vx = lastvx;
             vy = lastvy;
             va = lastva;
             // ROS_INFO("*****FILT OUT********");
         }
-    } else {
+    }
+    else
+    {
         count = 0;
         lastvx = vx;
         lastvy = vy;
@@ -115,21 +129,24 @@ void velFilter(float &vx, float &vy, float &va, int &count, float &lastvx, float
     }
 }
 
-bool send_struct_command_serial(serial::Serial &ser) {
+bool send_struct_command_serial(serial::Serial &ser)
+{
     struct_command_data command;
     struct_command_data *command_ptr = &command;
     char *command_ptr_char = (char *) command_ptr;
 
     uint8_t cmd_buff[150];
     int i = 0;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
         command.speed_cmd[i] = speed_cmd[i];
         command.pos_cmd[i] = pos_cmd[i];
     }
 
     command.qr_scan_cmd = qr_scan_cmd;
-    if(qr_scan_cmd!=0){
-        qr_scan_cmd=0;
+    if(qr_scan_cmd != 0)
+    {
+        qr_scan_cmd = 0;
     }
     command.check_front_cmd = CHECK_FRONT_CMD;
     command.check_back_cmd = CHECK_BACK_CMD;
@@ -155,24 +172,31 @@ bool send_struct_command_serial(serial::Serial &ser) {
     //     ,(uint8_t)cmd_buff[5]
     //     ,(uint8_t)cmd_buff[6]
     //     ,(uint8_t)cmd_buff[7]);
-    ROS_INFO("%f %f %f",speed_cmd[0],speed_cmd[1],speed_cmd[2]);
+    ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
     return true;
 }
 
-int main(int argc, char **argv) {
-    try {
+int main(int argc, char **argv)
+{
+    try
+    {
         ser.setPort("/dev/ttyUSB0");
         ser.setBaudrate(115200);
         serial::Timeout to = serial::Timeout::simpleTimeout(1000);
         ser.setTimeout(to);
         ser.open();
-    } catch (serial::IOException &e) {
+    }
+    catch (serial::IOException &e)
+    {
         ROS_ERROR_STREAM("Unable to open port ");
         return -1;
     }
-    if (ser.isOpen()) {
+    if (ser.isOpen())
+    {
         ROS_INFO_STREAM("Serial Port initialized");
-    } else {
+    }
+    else
+    {
         return -1;
     }
 
@@ -184,10 +208,10 @@ int main(int argc, char **argv) {
     bool serialflag = true;
     std::string datastr = "";
     datastr.clear();
-// char feedback_buff[200];
+    // char feedback_buff[200];
     const char *front_fbk = "FBK";
     const char *back_fbk = "fbk";
-// printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH); 
+    // printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);
 
     geometry_msgs::Twist carVelocity;
     int zeroCount = 0;
@@ -200,7 +224,8 @@ int main(int argc, char **argv) {
     cmd[COMMAND_SIZE] = '\0';
 
 
-    while (ros::ok()) {
+    while (ros::ok())
+    {
 
         carVelocity = dataUpdater.getCarVel();
         velx = (float) carVelocity.linear.x;
@@ -213,34 +238,41 @@ int main(int argc, char **argv) {
         speed_cmd[0] = vx;
         speed_cmd[1] = vy;
         speed_cmd[2] = va;
-//        genCmd(cmd, vx, vy, -va); // adjust the opsite direction
+        //        genCmd(cmd, vx, vy, -va); // adjust the opsite direction
         string stringSend;
-        try {
-//            uint8_t *uint8_t_cmd_ptr = (uint8_t *) cmd;
-//            ser.write(uint8_t_cmd_ptr, COMMAND_SIZE);
+        try
+        {
+            //            uint8_t *uint8_t_cmd_ptr = (uint8_t *) cmd;
+            //            ser.write(uint8_t_cmd_ptr, COMMAND_SIZE);
             // ROS_INFO("stringSend.length() %ld",stringSend.length());
             send_struct_command_serial(ser);
-        } catch (serial::IOException &e) {
+        }
+        catch (serial::IOException &e)
+        {
             ROS_INFO("Write error..");
         }
 
         datastr.clear();
         // ROS_INFO("%s", ser.available() ? "available" : "not available");
         datastr += ser.read(ser.available());
-        if (datastr.length() > 0) {
+        if (datastr.length() > 0)
+        {
             // cout<< datastr<<endl;
             // ROS_INFO("%d",datastr.length());
             const char *head = strstr(datastr.data(), front_fbk);
             // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
             // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
-            if (head != NULL) {
+            if (head != NULL)
+            {
                 // printf("%s\n",head);
                 if (head[FEEDBACK_DATA_LENGTH + 3 + 0] == back_fbk[0] &&
-                    head[FEEDBACK_DATA_LENGTH + 3 + 1] == back_fbk[1] &&
-                    head[FEEDBACK_DATA_LENGTH + 3 + 2] == back_fbk[2]) {
+                        head[FEEDBACK_DATA_LENGTH + 3 + 1] == back_fbk[1] &&
+                        head[FEEDBACK_DATA_LENGTH + 3 + 2] == back_fbk[2])
+                {
                     struct_feedback_data *feedback_ptr = (struct_feedback_data *) (head + 3);
                     if (feedback_ptr->check_front_fbk == CHECK_FRONT_FBK &&
-                        feedback_ptr->check_back_fbk == CHECK_BACK_FBK) {
+                            feedback_ptr->check_back_fbk == CHECK_BACK_FBK)
+                    {
                         ROS_INFO("Valid serial data recieved.");
                         ROS_INFO("speed %f %f %f", feedback_ptr->speed_fbk[0],
                                  feedback_ptr->speed_fbk[1], feedback_ptr->speed_fbk[2]);
@@ -269,19 +301,6 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        // ROS_INFO("loop end.");
-
-        // ROS_INFO("end");
-        // }
-
-        // serialflag = !serialflag;
-        // string stringSend;
-        // char charSend[50];
-        // sprintf(charSend, "ANGLEUTD%dANGLEUTD\n\r", (int) (1 * 10));
-
-        // // ROS_INFO("%s", charSend);
-        // stringSend = charSend;
-        // ser.write(stringSend);
 
         ros::spinOnce();
 
