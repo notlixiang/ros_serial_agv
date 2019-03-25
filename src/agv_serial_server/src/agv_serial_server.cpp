@@ -282,6 +282,7 @@ int main(int argc, char **argv)
                                  feedback_ptr->a_fbk[1], feedback_ptr->a_fbk[2]);
                         ROS_INFO("imu_g %f %f %f", feedback_ptr->g_fbk[0],
                                  feedback_ptr->g_fbk[1], feedback_ptr->g_fbk[2]);
+                        ROS_INFO("imu_yaw %f", feedback_ptr->yaw_fbk);
                         ROS_INFO("ultra_sound %f %f %f %f %f %f %f %f %f %f %f %f",
                                  feedback_ptr->ultra_sound_signal_fbk[0],
                                  feedback_ptr->ultra_sound_signal_fbk[1],
