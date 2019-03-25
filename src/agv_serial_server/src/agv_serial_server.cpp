@@ -273,7 +273,7 @@ int main(int argc, char **argv)
                     if (feedback_ptr->check_front_fbk == CHECK_FRONT_FBK &&
                             feedback_ptr->check_back_fbk == CHECK_BACK_FBK)
                     {
-                        ROS_INFO("Valid serial data recieved.");
+                        ROS_INFO("Valid serial data received.");
                         ROS_INFO("speed %f %f %f", feedback_ptr->speed_fbk[0],
                                  feedback_ptr->speed_fbk[1], feedback_ptr->speed_fbk[2]);
                         ROS_INFO("positon %f %f %f", feedback_ptr->pos_fbk[0],
