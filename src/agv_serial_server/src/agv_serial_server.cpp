@@ -11,7 +11,7 @@
 
 #include <StructSerial.h>
 
-#define FREQUENCY 10
+#define FREQUENCY 20
 #define COMMAND_SIZE 11 
 
 #define MAXZERONUM 5
