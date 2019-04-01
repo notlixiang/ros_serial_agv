@@ -9,9 +9,13 @@ sudo chmod 777 /dev/ttyUSB0
 
 echo ""
 echo "Refresh ROS environment..."
-rospack profile&&
+rospack profile
 
-source devel/setup.bash&&
+echo ""
+echo "Install required ros packages..."
+rosdep install --from-paths src --ignore-src -r -y
+
+source devel/setup.bash
 
 echo ""
 echo "make..."
