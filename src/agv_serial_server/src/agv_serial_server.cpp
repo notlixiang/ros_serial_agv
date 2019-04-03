@@ -11,7 +11,7 @@
 
 #include <StructSerial.h>
 
-#define FREQUENCY 20
+#define FREQUENCY 10
 #define COMMAND_SIZE 11
 
 #define MAXZERONUM 5
@@ -144,6 +144,7 @@ bool send_struct_command_serial(serial::Serial &ser)
     }
 
     command.qr_scan_cmd = qr_scan_cmd;
+    ROS_INFO("qr_scan_cmd %d", qr_scan_cmd);
     if(qr_scan_cmd != 0)
     {
         qr_scan_cmd = 0;
@@ -172,7 +173,7 @@ bool send_struct_command_serial(serial::Serial &ser)
     //     ,(uint8_t)cmd_buff[5]
     //     ,(uint8_t)cmd_buff[6]
     //     ,(uint8_t)cmd_buff[7]);
-    ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
+    // ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
     return true;
 }
 
@@ -297,6 +298,15 @@ int main(int argc, char **argv)
                                  feedback_ptr->ultra_sound_signal_fbk[10],
                                  feedback_ptr->ultra_sound_signal_fbk[11]);
                         ROS_INFO("qr_code %s\n", feedback_ptr->qr_scan_fbk);
+                        ROS_INFO("qr_code %d %d %d %d %d %d %d %d %d\n", feedback_ptr->qr_scan_fbk[0]
+                            , feedback_ptr->qr_scan_fbk[1]
+                            , feedback_ptr->qr_scan_fbk[2]
+                            , feedback_ptr->qr_scan_fbk[3]
+                            , feedback_ptr->qr_scan_fbk[4]
+                            , feedback_ptr->qr_scan_fbk[5]
+                            , feedback_ptr->qr_scan_fbk[6]
+                            , feedback_ptr->qr_scan_fbk[7]
+                            , feedback_ptr->qr_scan_fbk[8]);
                     }
                     // datastr.clear();
                 }
