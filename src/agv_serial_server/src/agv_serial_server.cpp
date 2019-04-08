@@ -173,7 +173,7 @@ bool send_struct_command_serial(serial::Serial &ser)
     //     ,(uint8_t)cmd_buff[5]
     //     ,(uint8_t)cmd_buff[6]
     //     ,(uint8_t)cmd_buff[7]);
-    // ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
+    ROS_INFO("speed command %f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
     return true;
 }
 
