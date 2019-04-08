@@ -11,7 +11,7 @@
 
 #include <StructSerial.h>
 
-#define FREQUENCY 20
+#define FREQUENCY 10
 #define COMMAND_SIZE 11
 
 #define MAXZERONUM 5
@@ -144,6 +144,7 @@ bool send_struct_command_serial(serial::Serial &ser)
     }
 
     command.qr_scan_cmd = qr_scan_cmd;
+    ROS_INFO("qr_scan_cmd %d", qr_scan_cmd);
     if(qr_scan_cmd != 0)
     {
         qr_scan_cmd = 0;
@@ -172,7 +173,7 @@ bool send_struct_command_serial(serial::Serial &ser)
     //     ,(uint8_t)cmd_buff[5]
     //     ,(uint8_t)cmd_buff[6]
     //     ,(uint8_t)cmd_buff[7]);
-    ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
+    // ROS_INFO("%f %f %f", speed_cmd[0], speed_cmd[1], speed_cmd[2]);
     return true;
 }
 
@@ -223,9 +224,73 @@ int main(int argc, char **argv)
     char cmd[COMMAND_SIZE + 1];
     cmd[COMMAND_SIZE] = '\0';
 
-
+    bool flag = true;
     while (ros::ok())
     {
+
+        // flag=!flag;
+        if(flag)
+        {
+            datastr.clear();
+            // ROS_INFO("%s", ser.available() ? "available" : "not available");
+            datastr += ser.read(ser.available());
+            if (datastr.length() > 0)
+            {
+                // cout<< datastr<<endl;
+                // ROS_INFO("%d",datastr.length());
+                const char *head = strstr(datastr.data(), front_fbk);
+                // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
+                // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
+                if (head != NULL)
+                {
+                    // printf("%s\n",head);
+                    if (head[FEEDBACK_DATA_LENGTH + 3 + 0] == back_fbk[0] &&
+                            head[FEEDBACK_DATA_LENGTH  + 3 + 1] == back_fbk[1] &&
+                            head[FEEDBACK_DATA_LENGTH + 3 + 2] == back_fbk[2])
+                    {
+                        struct_feedback_data *feedback_ptr = (struct_feedback_data *) (head + 3);
+                        if (feedback_ptr->check_front_fbk == CHECK_FRONT_FBK &&
+                                feedback_ptr->check_back_fbk == CHECK_BACK_FBK)
+                        {
+                            ROS_INFO("Valid serial data received.");
+                            ROS_INFO("speed %f %f %f", feedback_ptr->speed_fbk[0],
+                                     feedback_ptr->speed_fbk[1], feedback_ptr->speed_fbk[2]);
+                            ROS_INFO("positon %f %f %f", feedback_ptr->pos_fbk[0],
+                                     feedback_ptr->pos_fbk[1], feedback_ptr->pos_fbk[2]);
+                            ROS_INFO("imu_a %f %f %f", feedback_ptr->a_fbk[0],
+                                     feedback_ptr->a_fbk[1], feedback_ptr->a_fbk[2]);
+                            ROS_INFO("imu_g %f %f %f", feedback_ptr->g_fbk[0],
+                                     feedback_ptr->g_fbk[1], feedback_ptr->g_fbk[2]);
+                            ROS_INFO("imu_yaw %f", feedback_ptr->yaw_fbk);
+                            ROS_INFO("ultra_sound %f %f %f %f %f %f %f %f %f %f %f %f",
+                                     feedback_ptr->ultra_sound_signal_fbk[0],
+                                     feedback_ptr->ultra_sound_signal_fbk[1],
+                                     feedback_ptr->ultra_sound_signal_fbk[2],
+                                     feedback_ptr->ultra_sound_signal_fbk[3],
+                                     feedback_ptr->ultra_sound_signal_fbk[4],
+                                     feedback_ptr->ultra_sound_signal_fbk[5],
+                                     feedback_ptr->ultra_sound_signal_fbk[6],
+                                     feedback_ptr->ultra_sound_signal_fbk[7],
+                                     feedback_ptr->ultra_sound_signal_fbk[8],
+                                     feedback_ptr->ultra_sound_signal_fbk[9],
+                                     feedback_ptr->ultra_sound_signal_fbk[10],
+                                     feedback_ptr->ultra_sound_signal_fbk[11]);
+                            ROS_INFO("qr_code %s\n", feedback_ptr->qr_scan_fbk);
+                            // ROS_INFO("qr_code %d %d %d %d %d %d %d %d %d\n", feedback_ptr->qr_scan_fbk[0]
+                            //          , feedback_ptr->qr_scan_fbk[1]
+                            //          , feedback_ptr->qr_scan_fbk[2]
+                            //          , feedback_ptr->qr_scan_fbk[3]
+                            //          , feedback_ptr->qr_scan_fbk[4]
+                            //          , feedback_ptr->qr_scan_fbk[5]
+                            //          , feedback_ptr->qr_scan_fbk[6]
+                            //          , feedback_ptr->qr_scan_fbk[7]
+                            //          , feedback_ptr->qr_scan_fbk[8]);
+                        }
+                        // datastr.clear();
+                    }
+                }
+            }
+        }
 
         carVelocity = dataUpdater.getCarVel();
         velx = (float) carVelocity.linear.x;
@@ -250,57 +315,6 @@ int main(int argc, char **argv)
         catch (serial::IOException &e)
         {
             ROS_INFO("Write error..");
-        }
-
-        datastr.clear();
-        // ROS_INFO("%s", ser.available() ? "available" : "not available");
-        datastr += ser.read(ser.available());
-        if (datastr.length() > 0)
-        {
-            // cout<< datastr<<endl;
-            // ROS_INFO("%d",datastr.length());
-            const char *head = strstr(datastr.data(), front_fbk);
-            // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
-            // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
-            if (head != NULL)
-            {
-                // printf("%s\n",head);
-                if (head[FEEDBACK_DATA_LENGTH + 3 + 0] == back_fbk[0] &&
-                        head[FEEDBACK_DATA_LENGTH + 3 + 1] == back_fbk[1] &&
-                        head[FEEDBACK_DATA_LENGTH + 3 + 2] == back_fbk[2])
-                {
-                    struct_feedback_data *feedback_ptr = (struct_feedback_data *) (head + 3);
-                    if (feedback_ptr->check_front_fbk == CHECK_FRONT_FBK &&
-                            feedback_ptr->check_back_fbk == CHECK_BACK_FBK)
-                    {
-                        ROS_INFO("Valid serial data received.");
-                        ROS_INFO("speed %f %f %f", feedback_ptr->speed_fbk[0],
-                                 feedback_ptr->speed_fbk[1], feedback_ptr->speed_fbk[2]);
-                        ROS_INFO("positon %f %f %f", feedback_ptr->pos_fbk[0],
-                                 feedback_ptr->pos_fbk[1], feedback_ptr->pos_fbk[2]);
-                        ROS_INFO("imu_a %f %f %f", feedback_ptr->a_fbk[0],
-                                 feedback_ptr->a_fbk[1], feedback_ptr->a_fbk[2]);
-                        ROS_INFO("imu_g %f %f %f", feedback_ptr->g_fbk[0],
-                                 feedback_ptr->g_fbk[1], feedback_ptr->g_fbk[2]);
-                        ROS_INFO("imu_yaw %f", feedback_ptr->yaw_fbk);
-                        ROS_INFO("ultra_sound %f %f %f %f %f %f %f %f %f %f %f %f",
-                                 feedback_ptr->ultra_sound_signal_fbk[0],
-                                 feedback_ptr->ultra_sound_signal_fbk[1],
-                                 feedback_ptr->ultra_sound_signal_fbk[2],
-                                 feedback_ptr->ultra_sound_signal_fbk[3],
-                                 feedback_ptr->ultra_sound_signal_fbk[4],
-                                 feedback_ptr->ultra_sound_signal_fbk[5],
-                                 feedback_ptr->ultra_sound_signal_fbk[6],
-                                 feedback_ptr->ultra_sound_signal_fbk[7],
-                                 feedback_ptr->ultra_sound_signal_fbk[8],
-                                 feedback_ptr->ultra_sound_signal_fbk[9],
-                                 feedback_ptr->ultra_sound_signal_fbk[10],
-                                 feedback_ptr->ultra_sound_signal_fbk[11]);
-                        ROS_INFO("qr_code %s\n", feedback_ptr->qr_scan_fbk);
-                    }
-                    // datastr.clear();
-                }
-            }
         }
 
         ros::spinOnce();
