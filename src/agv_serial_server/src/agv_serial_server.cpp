@@ -236,7 +236,7 @@ int main(int argc, char **argv)
             datastr += ser.read(ser.available());
             if (datastr.length() > 0)
             {
-                // cout<< datastr<<endl;
+                cout<< datastr<<endl;
                 // ROS_INFO("%d",datastr.length());
                 const char *head = strstr(datastr.data(), front_fbk);
                 // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
@@ -275,6 +275,7 @@ int main(int argc, char **argv)
                                      feedback_ptr->ultra_sound_signal_fbk[9],
                                      feedback_ptr->ultra_sound_signal_fbk[10],
                                      feedback_ptr->ultra_sound_signal_fbk[11]);
+                            ROS_INFO("voltage %f", feedback_ptr->voltage_fbk);
                             ROS_INFO("qr_code %s\n", feedback_ptr->qr_scan_fbk);
                             // ROS_INFO("qr_code %d %d %d %d %d %d %d %d %d\n", feedback_ptr->qr_scan_fbk[0]
                             //          , feedback_ptr->qr_scan_fbk[1]
