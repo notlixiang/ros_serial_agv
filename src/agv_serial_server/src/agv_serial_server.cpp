@@ -277,6 +277,13 @@ int main(int argc, char **argv)
                                      feedback_ptr->ultra_sound_signal_fbk[11]);
                             ROS_INFO("voltage %f", feedback_ptr->voltage_fbk);
                             ROS_INFO("charging_status %d", feedback_ptr->charging_status_fbk);
+                            ROS_INFO("infrared %d %d %d %d %d %d",
+                                     feedback_ptr->infrared_fbk[0],
+                                     feedback_ptr->infrared_fbk[1],
+                                     feedback_ptr->infrared_fbk[2],
+                                     feedback_ptr->infrared_fbk[3],
+                                     feedback_ptr->infrared_fbk[4],
+                                     feedback_ptr->infrared_fbk[5]);
                             ROS_INFO("qr_code %s\n", feedback_ptr->qr_scan_fbk);
                             // ROS_INFO("qr_code %d %d %d %d %d %d %d %d %d\n", feedback_ptr->qr_scan_fbk[0]
                             //          , feedback_ptr->qr_scan_fbk[1]

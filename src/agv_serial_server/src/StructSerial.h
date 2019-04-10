@@ -37,6 +37,7 @@ typedef struct struct_feedback_data {
 
 	float voltage_fbk;
 	uint8_t charging_status_fbk;
+	uint8_t infrared_fbk[6];
 	
 	char qr_scan_fbk[10];
 	
