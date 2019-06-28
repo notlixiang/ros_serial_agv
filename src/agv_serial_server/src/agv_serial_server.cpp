@@ -210,7 +210,7 @@ int main(int argc, char **argv)
     std::string datastr = "";
     datastr.clear();
     // char feedback_buff[200];
-    const char *front_fbk = "FBK";
+    const char *front_fbk = "\0FBK";
     const char *back_fbk = "fbk";
     // printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);
 
@@ -228,19 +228,22 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
 
-        // flag=!flag;
+        // flag = !flag;
         if(flag)
         {
-            datastr.clear();
+            // datastr.clear();
             // ROS_INFO("%s", ser.available() ? "available" : "not available");
             datastr += ser.read(ser.available());
             if (datastr.length() > 0)
             {
-                cout<< datastr<<endl;
+                cout << datastr << endl;
                 // ROS_INFO("%d",datastr.length());
                 const char *head = strstr(datastr.data(), front_fbk);
                 // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
                 // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
+                // cout<<"head "<<head<<endl;
+                ROS_INFO("head %d\n", (int)(head - datastr.data()));
+                // ROS_INFO("head %d\n",(int)(head));
                 if (head != NULL)
                 {
                     // printf("%s\n",head);
@@ -295,8 +298,17 @@ int main(int argc, char **argv)
                             //          , feedback_ptr->qr_scan_fbk[7]
                             //          , feedback_ptr->qr_scan_fbk[8]);
                         }
-                        // datastr.clear();
+                        else
+                        {
+                            ROS_INFO("invalid check int\n");
+                        }
                     }
+                    else
+                    {
+                        ROS_INFO("invalid check char %c %c %c\n", head[FEEDBACK_DATA_LENGTH + 3 + 0],
+                                 head[FEEDBACK_DATA_LENGTH  + 3 + 1], head[FEEDBACK_DATA_LENGTH + 3 + 2]);
+                    }
+                    datastr.clear();
                 }
             }
         }
