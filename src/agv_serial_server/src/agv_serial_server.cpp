@@ -23,6 +23,38 @@ float speed_cmd[3] = {0};
 float pos_cmd[3] = {0};
 uint8_t qr_scan_cmd = 0;
 
+const char *mystrstr(const char *pOri, int OriNum, const char *pFind, int FindNum)
+{
+    // char *p = NULL;
+    if(OriNum < FindNum)
+        return NULL;
+    else
+    {
+        int i = 0, j = 0, Match = 0;
+        for(i = 0; i < OriNum && FindNum + i + 1 <= OriNum; i++)
+        {
+            int e = i;
+            for(j = 0; j < FindNum; j++)
+            {
+                if(!memcmp(pFind + j, pOri + e, 1))
+                {
+                    e++;
+                    Match++;
+                }
+                else
+                    Match = 0;
+            }
+            if(Match == FindNum)
+            {
+                return (pOri + i);
+                break;
+            }
+        }
+    }
+
+    return NULL;
+}
+
 class DataUpdater
 {
 public:
@@ -210,7 +242,7 @@ int main(int argc, char **argv)
     std::string datastr = "";
     datastr.clear();
     // char feedback_buff[200];
-    const char *front_fbk = "\0FBK";
+    const char *front_fbk = "FBK";
     const char *back_fbk = "fbk";
     // printf("FEEDBACK_DATA_LENGTH %d\n",FEEDBACK_DATA_LENGTH);
 
@@ -238,16 +270,19 @@ int main(int argc, char **argv)
             {
                 cout << datastr << endl;
                 // ROS_INFO("%d",datastr.length());
-                const char *head = strstr(datastr.data(), front_fbk);
+                const char *datachar = datastr.c_str();
+                // ROS_INFO("strlen(datachar) %d\n", strlen(datachar));
+                const char *head = mystrstr(datachar, datastr.length(), front_fbk, strlen(front_fbk));
                 // cout<<datastr.length()<<datastr.data()[FEEDBACK_DATA_LENGTH]<<endl;
                 // printf("%s\n",datastr.data()+FEEDBACK_DATA_LENGTH+5);
                 // cout<<"head "<<head<<endl;
-                ROS_INFO("head %d\n", (int)(head - datastr.data()));
+                // ROS_INFO("head %d\n", (int)(head - datachar));
                 // ROS_INFO("head %d\n",(int)(head));
-                if (head != NULL)
+                if (head != NULL )
                 {
                     // printf("%s\n",head);
-                    if (head[FEEDBACK_DATA_LENGTH + 3 + 0] == back_fbk[0] &&
+                    if ((int)(head + FEEDBACK_DATA_LENGTH + 3 + 2 - datachar) <= datastr.length() &&
+                            head[FEEDBACK_DATA_LENGTH + 3 + 0] == back_fbk[0] &&
                             head[FEEDBACK_DATA_LENGTH  + 3 + 1] == back_fbk[1] &&
                             head[FEEDBACK_DATA_LENGTH + 3 + 2] == back_fbk[2])
                     {
@@ -302,13 +337,24 @@ int main(int argc, char **argv)
                         {
                             ROS_INFO("invalid check int\n");
                         }
+                        datastr.clear();
                     }
                     else
                     {
+                        static int cnt_char_error = 0;
+                        cnt_char_error += 1;
                         ROS_INFO("invalid check char %c %c %c\n", head[FEEDBACK_DATA_LENGTH + 3 + 0],
                                  head[FEEDBACK_DATA_LENGTH  + 3 + 1], head[FEEDBACK_DATA_LENGTH + 3 + 2]);
+                        if(cnt_char_error > 5)
+                        {
+                            cnt_char_error = 0;
+                            datastr.clear();
+                        }
                     }
-                    datastr.clear();
+                }
+                else
+                {
+                    ROS_INFO("str match failed\n");
                 }
             }
         }
