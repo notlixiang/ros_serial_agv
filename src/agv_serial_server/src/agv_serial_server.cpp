@@ -371,6 +371,8 @@ int main(int argc, char **argv)
         speed_cmd[1] = vy;
         speed_cmd[2] = va;
         //        genCmd(cmd, vx, vy, -va); // adjust the opsite direction
+        // static int testint=0;
+        // speed_cmd[0] = testint++;
         string stringSend;
         try
         {
