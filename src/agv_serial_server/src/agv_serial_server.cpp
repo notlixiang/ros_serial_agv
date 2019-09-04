@@ -285,6 +285,7 @@ int main(int argc, char **argv) {
                                      feedback_ptr->ultra_sound_signal_fbk[10],
                                      feedback_ptr->ultra_sound_signal_fbk[11]);
                             ROS_INFO("voltage %f", feedback_ptr->voltage_fbk);
+                            ROS_INFO("displacement_sensor_voltage %f", feedback_ptr->displacement_sensor_voltage_fbk);
                             ROS_INFO("charging_status %d", feedback_ptr->charging_status_fbk);
                             ROS_INFO("infrared %d %d %d %d %d %d",
                                      feedback_ptr->infrared_fbk[0],

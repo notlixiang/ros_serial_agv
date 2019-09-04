@@ -36,6 +36,7 @@ typedef struct struct_feedback_data {
 	float ultra_sound_signal_fbk[12];
 
 	float voltage_fbk;
+	float displacement_sensor_voltage_fbk;
 	uint8_t charging_status_fbk;
 	uint8_t infrared_fbk[6];
 	
